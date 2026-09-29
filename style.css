@@ -15,7 +15,9 @@ html {
 body {
     background: #0b0b0d;
     color: #f2f2f2;
+
     font-family: Arial, Helvetica, sans-serif;
+
     line-height: 1.6;
 }
 
@@ -31,10 +33,11 @@ a {
 
 header {
     position: fixed;
+
     top: 0;
     left: 0;
-    width: 100%;
 
+    width: 100%;
     height: 72px;
 
     display: flex;
@@ -44,6 +47,7 @@ header {
     padding: 0 6vw;
 
     background: rgba(11, 11, 13, 0.78);
+
     backdrop-filter: blur(16px);
 
     border-bottom: 1px solid rgba(255, 255, 255, 0.07);
@@ -53,19 +57,25 @@ header {
 
 .logo {
     font-size: 22px;
+
     font-weight: 800;
+
     letter-spacing: -1px;
 }
 
 nav {
     display: flex;
+
     gap: 28px;
 }
 
 nav a {
-    font-size: 11px;
-    letter-spacing: 1.5px;
     color: #888;
+
+    font-size: 11px;
+
+    letter-spacing: 1.5px;
+
     transition: 0.2s ease;
 }
 
@@ -88,6 +98,7 @@ nav a:hover {
     padding: 120px 8vw 80px;
 
     position: relative;
+
     overflow: hidden;
 }
 
@@ -115,9 +126,11 @@ nav a:hover {
     color: #777;
 
     font-size: 10px;
+
     font-weight: 600;
 
     letter-spacing: 2px;
+
     text-transform: uppercase;
 
     margin-bottom: 24px;
@@ -129,9 +142,11 @@ nav a:hover {
     max-width: 950px;
 
     font-size: clamp(48px, 8vw, 105px);
+
     line-height: 0.95;
 
     letter-spacing: -5px;
+
     font-weight: 700;
 }
 
@@ -153,9 +168,11 @@ nav a:hover {
     padding: 13px 19px;
 
     border: 1px solid #333;
+
     border-radius: 4px;
 
     font-size: 10px;
+
     letter-spacing: 1.5px;
 
     transition: 0.25s ease;
@@ -163,7 +180,9 @@ nav a:hover {
 
 .hero-button:hover {
     background: #f2f2f2;
+
     color: #0b0b0d;
+
     border-color: #f2f2f2;
 }
 
@@ -182,7 +201,9 @@ nav a:hover {
 
 .section-heading h2 {
     font-size: clamp(40px, 6vw, 70px);
+
     line-height: 1;
+
     letter-spacing: -3px;
 }
 
@@ -197,7 +218,9 @@ nav a:hover {
 
 .category-heading {
     display: flex;
+
     align-items: baseline;
+
     justify-content: space-between;
 
     padding-bottom: 18px;
@@ -209,7 +232,9 @@ nav a:hover {
 
 .category-heading h3 {
     font-size: 23px;
+
     font-weight: 500;
+
     letter-spacing: -0.5px;
 }
 
@@ -217,6 +242,7 @@ nav a:hover {
     color: #555;
 
     font-size: 9px;
+
     letter-spacing: 1.5px;
 }
 
@@ -227,6 +253,7 @@ nav a:hover {
 
 .tracks {
     display: flex;
+
     flex-direction: column;
 }
 
@@ -234,6 +261,7 @@ nav a:hover {
     display: grid;
 
     grid-template-columns: 1fr 1fr;
+
     align-items: center;
 
     gap: 40px;
@@ -247,6 +275,7 @@ nav a:hover {
 
 .track:hover {
     padding-left: 10px;
+
     padding-right: 10px;
 
     background: rgba(255, 255, 255, 0.015);
@@ -254,6 +283,7 @@ nav a:hover {
 
 .track-info {
     display: flex;
+
     align-items: center;
 
     gap: 24px;
@@ -263,6 +293,7 @@ nav a:hover {
     color: #444;
 
     font-size: 10px;
+
     letter-spacing: 1px;
 
     min-width: 20px;
@@ -270,6 +301,7 @@ nav a:hover {
 
 .track h4 {
     font-size: 17px;
+
     font-weight: 500;
 
     letter-spacing: -0.2px;
@@ -295,11 +327,12 @@ nav a:hover {
 
 
 /* =========================
-   AUDIO PLAYER
+   AUDIO
 ========================= */
 
 audio {
     width: 100%;
+
     height: 38px;
 
     opacity: 0.75;
@@ -307,6 +340,121 @@ audio {
 
 audio:hover {
     opacity: 1;
+}
+
+
+/* =========================
+   COMMISSIONED WORK
+========================= */
+
+.commission-grid {
+    display: grid;
+
+    grid-template-columns: repeat(3, 1fr);
+
+    gap: 18px;
+}
+
+.commission-card {
+    padding: 28px;
+
+    border: 1px solid #202024;
+
+    background: #0e0e11;
+
+    transition: 0.25s ease;
+}
+
+.commission-card:hover {
+    border-color: #3a3a40;
+
+    transform: translateY(-3px);
+}
+
+.commission-header {
+    display: flex;
+
+    align-items: center;
+
+    gap: 15px;
+
+    margin-bottom: 35px;
+}
+
+.creator-icon {
+    width: 44px;
+    height: 44px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background: #19191d;
+
+    border: 1px solid #2c2c31;
+
+    color: #aaa;
+
+    font-size: 11px;
+
+    font-weight: 600;
+
+    letter-spacing: 0.5px;
+}
+
+.commission-header h4 {
+    font-size: 15px;
+
+    font-weight: 500;
+}
+
+.commission-header a {
+    display: inline-block;
+
+    margin-top: 2px;
+
+    color: #666;
+
+    font-size: 10px;
+}
+
+.commission-header a:hover {
+    color: white;
+}
+
+.commission-track {
+    padding-top: 20px;
+
+    border-top: 1px solid #202024;
+}
+
+.commission-track > div {
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+
+    margin-bottom: 15px;
+}
+
+.commission-track span {
+    color: #444;
+
+    font-size: 9px;
+}
+
+.commission-track strong {
+    font-size: 13px;
+
+    font-weight: 400;
+}
+
+.commission-track audio {
+    height: 35px;
 }
 
 
@@ -338,6 +486,7 @@ audio:hover {
     color: #eee;
 
     font-size: clamp(24px, 3vw, 38px);
+
     line-height: 1.2;
 
     letter-spacing: -1px;
@@ -352,7 +501,9 @@ audio:hover {
     min-height: 70vh;
 
     display: flex;
+
     flex-direction: column;
+
     justify-content: center;
 
     border-top: 1px solid #19191c;
@@ -362,6 +513,7 @@ audio:hover {
     font-size: clamp(45px, 7vw, 90px);
 
     line-height: 0.95;
+
     letter-spacing: -4px;
 }
 
@@ -373,6 +525,7 @@ audio:hover {
     color: #aaa;
 
     font-size: 12px;
+
     letter-spacing: 1.5px;
 
     border-bottom: 1px solid #555;
@@ -384,6 +537,7 @@ audio:hover {
 
 .contact-link:hover {
     color: white;
+
     border-color: white;
 }
 
@@ -394,7 +548,9 @@ audio:hover {
 
 footer {
     display: flex;
+
     align-items: center;
+
     justify-content: space-between;
 
     padding: 30px 8vw;
@@ -404,11 +560,13 @@ footer {
     color: #555;
 
     font-size: 10px;
+
     letter-spacing: 1px;
 }
 
 .footer-links {
     display: flex;
+
     gap: 25px;
 }
 
@@ -424,6 +582,15 @@ footer {
 /* =========================
    MOBILE
 ========================= */
+
+@media (max-width: 900px) {
+
+    .commission-grid {
+        grid-template-columns: 1fr;
+    }
+
+}
+
 
 @media (max-width: 700px) {
 
@@ -441,6 +608,7 @@ footer {
 
     .hero {
         padding-left: 7vw;
+
         padding-right: 7vw;
     }
 
@@ -454,6 +622,7 @@ footer {
 
     .track {
         grid-template-columns: 1fr;
+
         gap: 18px;
 
         padding: 24px 0;
@@ -461,6 +630,7 @@ footer {
 
     .about-content {
         grid-template-columns: 1fr;
+
         gap: 35px;
     }
 
@@ -470,118 +640,10 @@ footer {
 
     footer {
         flex-direction: column;
+
         align-items: flex-start;
-
-       /* =========================
-   COMMISSIONED WORK
-========================= */
-
-.commission-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 18px;
-}
-
-.commission-card {
-    padding: 28px;
-
-    border: 1px solid #202024;
-    background: #0e0e11;
-
-    transition: 0.25s ease;
-}
-
-.commission-card:hover {
-    border-color: #3a3a40;
-    transform: translateY(-3px);
-}
-
-.commission-header {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-
-    margin-bottom: 35px;
-}
-
-.creator-icon {
-    width: 44px;
-    height: 44px;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    border-radius: 50%;
-
-    background: #19191d;
-    border: 1px solid #2c2c31;
-
-    color: #aaa;
-
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-}
-
-.commission-header h4 {
-    font-size: 15px;
-    font-weight: 500;
-}
-
-.commission-header a {
-    display: inline-block;
-
-    margin-top: 2px;
-
-    color: #666;
-
-    font-size: 10px;
-}
-
-.commission-header a:hover {
-    color: white;
-}
-
-.commission-track {
-    padding-top: 20px;
-
-    border-top: 1px solid #202024;
-}
-
-.commission-track > div {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-
-    margin-bottom: 15px;
-}
-
-.commission-track span {
-    color: #444;
-    font-size: 9px;
-}
-
-.commission-track strong {
-    font-size: 13px;
-    font-weight: 400;
-}
-
-.commission-track audio {
-    height: 35px;
-}
-
-
-/* MOBILE */
-
-@media (max-width: 900px) {
-
-    .commission-grid {
-        grid-template-columns: 1fr;
-    }
-
-}
 
         gap: 20px;
     }
+
 }
