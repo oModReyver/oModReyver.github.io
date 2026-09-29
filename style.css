@@ -472,6 +472,116 @@ footer {
         flex-direction: column;
         align-items: flex-start;
 
+       /* =========================
+   COMMISSIONED WORK
+========================= */
+
+.commission-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+}
+
+.commission-card {
+    padding: 28px;
+
+    border: 1px solid #202024;
+    background: #0e0e11;
+
+    transition: 0.25s ease;
+}
+
+.commission-card:hover {
+    border-color: #3a3a40;
+    transform: translateY(-3px);
+}
+
+.commission-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+
+    margin-bottom: 35px;
+}
+
+.creator-icon {
+    width: 44px;
+    height: 44px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background: #19191d;
+    border: 1px solid #2c2c31;
+
+    color: #aaa;
+
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.commission-header h4 {
+    font-size: 15px;
+    font-weight: 500;
+}
+
+.commission-header a {
+    display: inline-block;
+
+    margin-top: 2px;
+
+    color: #666;
+
+    font-size: 10px;
+}
+
+.commission-header a:hover {
+    color: white;
+}
+
+.commission-track {
+    padding-top: 20px;
+
+    border-top: 1px solid #202024;
+}
+
+.commission-track > div {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    margin-bottom: 15px;
+}
+
+.commission-track span {
+    color: #444;
+    font-size: 9px;
+}
+
+.commission-track strong {
+    font-size: 13px;
+    font-weight: 400;
+}
+
+.commission-track audio {
+    height: 35px;
+}
+
+
+/* MOBILE */
+
+@media (max-width: 900px) {
+
+    .commission-grid {
+        grid-template-columns: 1fr;
+    }
+
+}
+
         gap: 20px;
     }
 }
