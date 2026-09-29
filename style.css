@@ -1,5 +1,57 @@
+/* =========================================================
+   REI — Composer & Producer
+   style.css
+
+   Contents:
+   1. Design tokens (colors, fonts)
+   2. Reset & base
+   3. Accessibility helpers
+   4. Header
+   5. Hero
+   6. Buttons
+   7. Sections
+   8. Tracks
+   9. Custom audio player
+   10. Commissioned work
+   11. About
+   12. Contact
+   13. Footer
+   14. Scroll reveal animation
+   15. Responsive (1024px, 768px, 480px)
+   16. Reduced motion
+========================================================= */
+
+
 /* =========================
-   RESET
+   1. DESIGN TOKENS
+   Change colors and fonts here and the whole site updates.
+========================= */
+
+:root {
+    --bg: #07080c;              /* page background: deep night */
+    --surface: #0d0f16;         /* cards */
+    --line: #1a1c26;            /* thin borders */
+    --line-strong: #2a2d3b;     /* borders on hover */
+
+    --text: #e9e7f0;            /* main text */
+    --muted: #9391a1;           /* secondary text */
+    --faint: #7a7986;           /* small labels (still readable) */
+
+    --violet: #8f86ff;          /* atmosphere glow */
+    --gold: #e6c07b;            /* small accent, like a lantern */
+
+    /* Serif for headlines, clean sans for everything else.
+       These are fonts already on most devices, so nothing extra to download. */
+    --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+    --font-body: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Hiragino Sans", "Yu Gothic", "Noto Sans JP", Arial, sans-serif;
+
+    --page-padding: 8vw;
+    --header-height: 72px;
+}
+
+
+/* =========================
+   2. RESET & BASE
 ========================= */
 
 * {
@@ -10,15 +62,15 @@
 
 html {
     scroll-behavior: smooth;
+    scroll-padding-top: var(--header-height);
 }
 
 body {
-    background: #0b0b0d;
-    color: #f2f2f2;
-
-    font-family: Arial, Helvetica, sans-serif;
-
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
     line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
 }
 
 a {
@@ -26,624 +78,979 @@ a {
     text-decoration: none;
 }
 
+h1, h2, h3, h4 {
+    font-weight: 400;
+}
+
 
 /* =========================
-   HEADER
+   3. ACCESSIBILITY HELPERS
 ========================= */
 
-header {
-    position: fixed;
+/* Visible outline when using the keyboard */
+:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 3px;
+    border-radius: 2px;
+}
 
+/* "Skip to content" link, only visible when focused */
+.skip-link {
+    position: fixed;
+    top: -60px;
+    left: 16px;
+    z-index: 200;
+    padding: 10px 16px;
+    background: var(--text);
+    color: var(--bg);
+    font-size: 14px;
+    border-radius: 4px;
+    transition: top 0.2s ease;
+}
+
+.skip-link:focus {
+    top: 12px;
+}
+
+
+/* =========================
+   4. HEADER
+========================= */
+
+.site-header {
+    position: fixed;
     top: 0;
     left: 0;
-
     width: 100%;
-    height: 72px;
+    height: var(--header-height);
+    z-index: 100;
 
     display: flex;
     align-items: center;
     justify-content: space-between;
+    padding: 0 var(--page-padding);
 
-    padding: 0 6vw;
-
-    background: rgba(11, 11, 13, 0.78);
-
+    background: rgba(7, 8, 12, 0.72);
+    -webkit-backdrop-filter: blur(16px);
     backdrop-filter: blur(16px);
-
-    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
-
-    z-index: 100;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .logo {
-    font-size: 22px;
-
-    font-weight: 800;
-
-    letter-spacing: -1px;
+    font-family: var(--font-display);
+    font-size: 26px;
+    letter-spacing: 0.04em;
+    line-height: 1;
 }
 
-nav {
+.logo-dot {
+    color: var(--gold);
+}
+
+.site-header nav {
     display: flex;
-
-    gap: 28px;
+    gap: 32px;
 }
 
-nav a {
-    color: #888;
-
-    font-size: 11px;
-
-    letter-spacing: 1.5px;
-
-    transition: 0.2s ease;
+.site-header nav a {
+    color: var(--muted);
+    font-size: 13px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition: color 0.2s ease;
 }
 
-nav a:hover {
-    color: white;
+.site-header nav a:hover {
+    color: var(--text);
 }
 
 
 /* =========================
-   HERO
+   5. HERO
 ========================= */
 
 .hero {
+    position: relative;
     min-height: 100vh;
+    min-height: 100svh;
 
     display: flex;
-    flex-direction: column;
-    justify-content: center;
-
-    padding: 120px 8vw 80px;
-
-    position: relative;
-
+    align-items: center;
+    padding: calc(var(--header-height) + 60px) var(--page-padding) 80px;
     overflow: hidden;
 }
 
-.hero::before {
+/* Atmospheric glows behind the headline */
+.hero::before,
+.hero::after {
     content: "";
-
     position: absolute;
-
-    width: 600px;
-    height: 600px;
-
-    top: 5%;
-    right: -150px;
-
-    background: radial-gradient(
-        circle,
-        rgba(130, 80, 255, 0.16),
-        transparent 70%
-    );
-
+    border-radius: 50%;
     pointer-events: none;
 }
 
+.hero::before {
+    width: 720px;
+    height: 720px;
+    top: -12%;
+    right: -220px;
+    background: radial-gradient(circle, rgba(143, 134, 255, 0.2), transparent 68%);
+}
+
+.hero::after {
+    width: 520px;
+    height: 520px;
+    bottom: -18%;
+    left: -180px;
+    background: radial-gradient(circle, rgba(230, 192, 123, 0.07), transparent 70%);
+}
+
+/* The staff lines: this is the one memorable detail on the page */
+.staff {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 220px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    pointer-events: none;
+
+    /* fades the lines out toward the left and right edges */
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 25%, #000 60%, transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 25%, #000 60%, transparent);
+}
+
+.staff span {
+    display: block;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.07);
+}
+
+.hero-inner {
+    position: relative;
+    z-index: 1;
+    max-width: 1000px;
+}
+
 .eyebrow {
-    color: #777;
-
-    font-size: 10px;
-
+    color: var(--faint);
+    font-size: 12px;
     font-weight: 600;
-
-    letter-spacing: 2px;
-
+    letter-spacing: 0.22em;
     text-transform: uppercase;
-
-    margin-bottom: 24px;
+    margin-bottom: 28px;
 }
 
 .hero h1 {
-    position: relative;
-
-    max-width: 950px;
-
-    font-size: clamp(48px, 8vw, 105px);
-
-    line-height: 0.95;
-
-    letter-spacing: -5px;
-
-    font-weight: 700;
+    font-family: var(--font-display);
+    font-size: clamp(46px, 8.4vw, 118px);
+    line-height: 0.98;
+    letter-spacing: -0.025em;
+    font-weight: 400;
 }
 
 .hero-description {
-    margin-top: 35px;
-
-    max-width: 460px;
-
-    color: #999;
-
-    font-size: 16px;
+    margin-top: 36px;
+    max-width: 440px;
+    color: var(--muted);
+    font-size: 18px;
+    line-height: 1.55;
 }
 
-.hero-button {
-    width: fit-content;
-
-    margin-top: 40px;
-
-    padding: 13px 19px;
-
-    border: 1px solid #333;
-
-    border-radius: 4px;
-
-    font-size: 10px;
-
-    letter-spacing: 1.5px;
-
-    transition: 0.25s ease;
+/* Page-load fade-in, one gentle sequence for the hero only */
+.hero-fade {
+    opacity: 0;
+    animation: fade-up 0.9s ease forwards;
 }
 
-.hero-button:hover {
-    background: #f2f2f2;
+.hero-fade-1 { animation-delay: 0.1s; }
+.hero-fade-2 { animation-delay: 0.25s; }
+.hero-fade-3 { animation-delay: 0.45s; }
+.hero-fade-4 { animation-delay: 0.6s; }
 
-    color: #0b0b0d;
-
-    border-color: #f2f2f2;
+@keyframes fade-up {
+    from {
+        opacity: 0;
+        transform: translateY(14px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 
 /* =========================
-   SECTIONS
+   6. BUTTONS
+========================= */
+
+.button {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 44px;
+    padding: 15px 26px;
+
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+
+    transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+}
+
+.button-arrow {
+    display: inline-block;
+    transition: transform 0.25s ease;
+}
+
+.button:hover {
+    background: var(--text);
+    color: var(--bg);
+    border-color: var(--text);
+}
+
+.button:hover .button-arrow {
+    transform: translateY(3px);
+}
+
+.button:active {
+    transform: scale(0.98);
+}
+
+
+/* =========================
+   7. SECTIONS
 ========================= */
 
 .section {
-    padding: 130px 8vw;
+    padding: 130px var(--page-padding);
 }
 
 .section-heading {
-    margin-bottom: 70px;
+    margin-bottom: 72px;
 }
 
-.section-heading h2 {
-    font-size: clamp(40px, 6vw, 70px);
-
+.section-heading h2,
+.contact h2 {
+    font-family: var(--font-display);
+    font-size: clamp(40px, 6vw, 72px);
     line-height: 1;
-
-    letter-spacing: -3px;
+    letter-spacing: -0.02em;
 }
-
-
-/* =========================
-   WORK CATEGORIES
-========================= */
 
 .work-category {
-    margin-bottom: 100px;
+    margin-bottom: 110px;
+}
+
+.work-category:last-child {
+    margin-bottom: 0;
 }
 
 .category-heading {
     display: flex;
-
     align-items: baseline;
-
     justify-content: space-between;
-
-    padding-bottom: 18px;
-
-    border-bottom: 1px solid #242428;
-
-    margin-bottom: 0;
+    gap: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--line-strong);
 }
 
 .category-heading h3 {
-    font-size: 23px;
-
-    font-weight: 500;
-
-    letter-spacing: -0.5px;
+    font-family: var(--font-display);
+    font-size: clamp(24px, 3vw, 30px);
+    letter-spacing: -0.01em;
 }
 
-.category-heading span {
-    color: #555;
-
-    font-size: 9px;
-
-    letter-spacing: 1.5px;
+.category-count {
+    color: var(--faint);
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    white-space: nowrap;
 }
 
 
 /* =========================
-   TRACKS
+   8. TRACKS
 ========================= */
 
 .tracks {
     display: flex;
-
     flex-direction: column;
 }
 
 .track {
     display: grid;
-
-    grid-template-columns: 1fr 1fr;
-
+    grid-template-columns: 40px minmax(180px, 1fr) minmax(280px, 1.3fr);
     align-items: center;
+    gap: 28px;
 
-    gap: 40px;
+    padding: 28px 14px;
+    border-bottom: 1px solid var(--line);
 
-    padding: 28px 0;
-
-    border-bottom: 1px solid #1e1e21;
-
-    transition: 0.25s ease;
+    transition: background 0.25s ease;
 }
 
-.track:hover {
-    padding-left: 10px;
-
-    padding-right: 10px;
-
-    background: rgba(255, 255, 255, 0.015);
-}
-
-.track-info {
-    display: flex;
-
-    align-items: center;
-
-    gap: 24px;
+.track:hover,
+.track.is-playing {
+    background: rgba(143, 134, 255, 0.05);
 }
 
 .track-number {
-    color: #444;
-
-    font-size: 10px;
-
-    letter-spacing: 1px;
-
-    min-width: 20px;
+    color: var(--faint);
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.08em;
+    transition: color 0.25s ease;
 }
 
-.track h4 {
-    font-size: 17px;
-
-    font-weight: 500;
-
-    letter-spacing: -0.2px;
+.track:hover .track-number,
+.track.is-playing .track-number {
+    color: var(--gold);
 }
 
-.track p {
-    margin-top: 4px;
-
-    color: #666;
-
-    font-size: 11px;
+.track-meta h4 {
+    font-family: var(--font-display);
+    font-size: 22px;
+    letter-spacing: -0.01em;
 }
 
-.track p a {
-    color: #999;
-
-    transition: 0.2s ease;
-}
-
-.track p a:hover {
-    color: white;
+.track-meta p {
+    margin-top: 2px;
+    color: var(--faint);
+    font-size: 13px;
+    letter-spacing: 0.04em;
 }
 
 
 /* =========================
-   AUDIO
+   9. CUSTOM AUDIO PLAYER
+   script.js builds this player. If JavaScript is off,
+   the normal browser audio controls are shown instead.
 ========================= */
 
-audio {
+.player {
     width: 100%;
-
-    height: 38px;
-
-    opacity: 0.75;
 }
 
-audio:hover {
-    opacity: 1;
+.player audio {
+    width: 100%;
+    height: 40px;
+}
+
+.player-ui {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+/* Play / pause button */
+.player-button {
+    flex-shrink: 0;
+    width: 46px;
+    height: 46px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--line-strong);
+    border-radius: 50%;
+    cursor: pointer;
+
+    transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+}
+
+.player-button svg {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+}
+
+/* Show the play icon normally, the pause icon while playing */
+.player-button .icon-pause {
+    display: none;
+}
+
+.player.is-playing .player-button .icon-play {
+    display: none;
+}
+
+.player.is-playing .player-button .icon-pause {
+    display: block;
+}
+
+.player-button:hover,
+.player.is-playing .player-button {
+    background: var(--text);
+    color: var(--bg);
+    border-color: var(--text);
+}
+
+.player-button:active {
+    transform: scale(0.94);
+}
+
+/* Progress bar (a range input, so keyboard and touch work for free) */
+.player-seek {
+    --progress: 0%;
+
+    flex: 1;
+    min-width: 0;
+    height: 24px;
+    margin: 0;
+    background: transparent;
+    cursor: pointer;
+
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+/* Chrome, Safari, Edge: the track */
+.player-seek::-webkit-slider-runnable-track {
+    height: 3px;
+    border-radius: 3px;
+    background: linear-gradient(
+        90deg,
+        var(--gold) var(--progress),
+        var(--line-strong) var(--progress)
+    );
+}
+
+/* Chrome, Safari, Edge: the handle */
+.player-seek::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 12px;
+    height: 12px;
+    margin-top: -4.5px;
+    border-radius: 50%;
+    border: none;
+    background: var(--text);
+    transform: scale(0);
+    transition: transform 0.15s ease;
+}
+
+/* Firefox: the track, progress, and handle */
+.player-seek::-moz-range-track {
+    height: 3px;
+    border-radius: 3px;
+    background: var(--line-strong);
+}
+
+.player-seek::-moz-range-progress {
+    height: 3px;
+    border-radius: 3px;
+    background: var(--gold);
+}
+
+.player-seek::-moz-range-thumb {
+    width: 12px;
+    height: 12px;
+    border: none;
+    border-radius: 50%;
+    background: var(--text);
+    transform: scale(0);
+    transition: transform 0.15s ease;
+}
+
+/* The handle appears on hover, focus, and while playing.
+   It is always visible on touch screens (see the media query below). */
+.player-seek:hover::-webkit-slider-thumb,
+.player-seek:focus-visible::-webkit-slider-thumb,
+.player.is-playing .player-seek::-webkit-slider-thumb {
+    transform: scale(1);
+}
+
+.player-seek:hover::-moz-range-thumb,
+.player-seek:focus-visible::-moz-range-thumb,
+.player.is-playing .player-seek::-moz-range-thumb {
+    transform: scale(1);
+}
+
+.player-time {
+    flex-shrink: 0;
+    min-width: 92px;
+    color: var(--muted);
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.04em;
+    text-align: right;
 }
 
 
 /* =========================
-   COMMISSIONED WORK
+   10. COMMISSIONED WORK (client credits)
 ========================= */
 
 .commission-grid {
     display: grid;
-
     grid-template-columns: repeat(3, 1fr);
-
-    gap: 18px;
+    gap: 20px;
+    margin-top: 40px;
 }
 
 .commission-card {
+    display: flex;
+    flex-direction: column;
     padding: 28px;
 
-    border: 1px solid #202024;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
 
-    background: #0e0e11;
-
-    transition: 0.25s ease;
+    transition: border-color 0.25s ease, background 0.25s ease;
 }
 
-.commission-card:hover {
-    border-color: #3a3a40;
-
-    transform: translateY(-3px);
+.commission-card:hover,
+.commission-card:focus-within {
+    border-color: var(--line-strong);
 }
 
 .commission-header {
     display: flex;
-
     align-items: center;
-
-    gap: 15px;
-
-    margin-bottom: 35px;
+    gap: 16px;
+    margin-bottom: 30px;
 }
 
 .creator-icon {
-    width: 44px;
-    height: 44px;
+    flex-shrink: 0;
+    width: 52px;
+    height: 52px;
 
     display: flex;
-
     align-items: center;
     justify-content: center;
 
     border-radius: 50%;
+    background: radial-gradient(circle at 30% 25%, #2a2740, #14151d 70%);
+    border: 1px solid var(--line-strong);
 
-    background: #19191d;
-
-    border: 1px solid #2c2c31;
-
-    color: #aaa;
-
-    font-size: 11px;
-
-    font-weight: 600;
-
-    letter-spacing: 0.5px;
+    color: var(--text);
+    font-family: var(--font-display);
+    font-size: 17px;
+    letter-spacing: 0.04em;
 }
 
 .commission-header h4 {
-    font-size: 15px;
-
-    font-weight: 500;
+    font-family: var(--font-display);
+    font-size: 20px;
+    line-height: 1.2;
 }
 
 .commission-header a {
     display: inline-block;
-
     margin-top: 2px;
-
-    color: #666;
-
-    font-size: 10px;
+    color: var(--muted);
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    transition: color 0.2s ease;
 }
 
 .commission-header a:hover {
-    color: white;
+    color: var(--gold);
 }
 
 .commission-track {
-    padding-top: 20px;
-
-    border-top: 1px solid #202024;
+    margin-top: auto;
+    padding-top: 22px;
+    border-top: 1px solid var(--line);
 }
 
-.commission-track > div {
+.commission-track-title {
     display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 14px;
+    font-size: 15px;
+}
 
-    align-items: center;
+.commission-track-title span {
+    color: var(--faint);
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+}
 
+/* Cards are narrower, so the player time sits a little tighter */
+.commission-track .player-ui {
     gap: 12px;
-
-    margin-bottom: 15px;
 }
 
-.commission-track span {
-    color: #444;
-
-    font-size: 9px;
-}
-
-.commission-track strong {
-    font-size: 13px;
-
-    font-weight: 400;
-}
-
-.commission-track audio {
-    height: 35px;
+.commission-track .player-time {
+    min-width: 84px;
+    font-size: 11px;
 }
 
 
 /* =========================
-   ABOUT
+   11. ABOUT
 ========================= */
 
 .about {
-    border-top: 1px solid #19191c;
+    border-top: 1px solid var(--line);
 }
 
 .about-content {
     display: grid;
-
-    grid-template-columns: 1.3fr 0.7fr;
-
-    gap: 100px;
-
-    max-width: 1000px;
+    grid-template-columns: 1.4fr 0.7fr;
+    gap: 90px;
+    align-items: start;
+    max-width: 1100px;
 }
 
-.about-content p {
-    color: #888;
-
-    font-size: 15px;
+.about-large {
+    font-family: var(--font-display);
+    font-size: clamp(26px, 3.3vw, 42px);
+    line-height: 1.22;
+    letter-spacing: -0.015em;
 }
 
-.about-content .about-large {
-    color: #eee;
-
-    font-size: clamp(24px, 3vw, 38px);
-
-    line-height: 1.2;
-
-    letter-spacing: -1px;
+.about-small {
+    color: var(--muted);
+    font-size: 16px;
+    line-height: 1.75;
+    max-width: 380px;
 }
 
 
 /* =========================
-   CONTACT
+   12. CONTACT
 ========================= */
 
 .contact {
+    position: relative;
     min-height: 70vh;
-
     display: flex;
+    align-items: center;
+    overflow: hidden;
+    border-top: 1px solid var(--line);
+}
 
-    flex-direction: column;
+/* soft glow behind the call to action */
+.contact::before {
+    content: "";
+    position: absolute;
+    width: 640px;
+    height: 640px;
+    right: -200px;
+    bottom: -300px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(143, 134, 255, 0.14), transparent 68%);
+    pointer-events: none;
+}
 
-    justify-content: center;
-
-    border-top: 1px solid #19191c;
+.contact > div {
+    position: relative;
 }
 
 .contact h2 {
-    font-size: clamp(45px, 7vw, 90px);
-
-    line-height: 0.95;
-
-    letter-spacing: -4px;
+    font-size: clamp(46px, 8vw, 104px);
+    line-height: 0.98;
+    letter-spacing: -0.03em;
 }
 
 .contact-link {
-    width: fit-content;
+    display: inline-block;
+    margin-top: 52px;
+    padding-bottom: 8px;
 
-    margin-top: 45px;
+    border-bottom: 1px solid var(--gold);
 
-    color: #aaa;
+    color: var(--gold);
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
 
-    font-size: 12px;
-
-    letter-spacing: 1.5px;
-
-    border-bottom: 1px solid #555;
-
-    padding-bottom: 7px;
-
-    transition: 0.2s ease;
+    transition: color 0.2s ease, border-color 0.2s ease, letter-spacing 0.3s ease;
 }
 
 .contact-link:hover {
-    color: white;
-
-    border-color: white;
+    color: var(--text);
+    border-color: var(--text);
+    letter-spacing: 0.2em;
 }
 
 
 /* =========================
-   FOOTER
+   13. FOOTER
 ========================= */
 
-footer {
+.site-footer {
     display: flex;
-
     align-items: center;
-
     justify-content: space-between;
+    gap: 20px;
+    padding: 32px var(--page-padding);
 
-    padding: 30px 8vw;
-
-    border-top: 1px solid #19191c;
-
-    color: #555;
-
-    font-size: 10px;
-
-    letter-spacing: 1px;
+    border-top: 1px solid var(--line);
+    color: var(--faint);
+    font-size: 13px;
 }
 
 .footer-links {
     display: flex;
-
-    gap: 25px;
+    flex-wrap: wrap;
+    gap: 12px 28px;
 }
 
 .footer-links a {
-    transition: 0.2s ease;
+    transition: color 0.2s ease;
 }
 
 .footer-links a:hover {
-    color: white;
+    color: var(--text);
+}
+
+/* Placeholder links (no real URL yet) */
+.footer-links a.is-placeholder {
+    cursor: default;
+    opacity: 0.7;
+}
+
+.footer-links a.is-placeholder:hover {
+    color: var(--faint);
+}
+
+.soon-tag {
+    margin-left: 6px;
+    padding: 2px 8px;
+    border: 1px dashed var(--line-strong);
+    border-radius: 999px;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
 }
 
 
 /* =========================
-   MOBILE
+   14. SCROLL REVEAL
+   Only active when JavaScript is running (the .js class is added
+   by script.js), so the page never stays hidden without JavaScript.
 ========================= */
 
-@media (max-width: 900px) {
+.js .reveal {
+    opacity: 0;
+    transform: translateY(18px);
+    transition: opacity 0.8s ease, transform 0.8s ease, background 0.25s ease, border-color 0.25s ease;
+}
 
+.js .reveal.is-visible {
+    opacity: 1;
+    transform: none;
+}
+
+
+/* =========================
+   15. RESPONSIVE
+========================= */
+
+/* ---- Small desktop / tablet landscape (about 1024px) ---- */
+@media (max-width: 1100px) {
+
+    .track {
+        grid-template-columns: 34px minmax(160px, 1fr) minmax(260px, 1.4fr);
+        gap: 20px;
+    }
+
+    .commission-card {
+        padding: 24px;
+    }
+
+    .about-content {
+        gap: 60px;
+    }
+
+}
+
+/* ---- Tablet portrait (about 768px) ---- */
+@media (max-width: 860px) {
+
+    :root {
+        --page-padding: 7vw;
+    }
+
+    .section {
+        padding: 100px var(--page-padding);
+    }
+
+    .section-heading {
+        margin-bottom: 56px;
+    }
+
+    .work-category {
+        margin-bottom: 80px;
+    }
+
+    /* Track: number and title on one row, player underneath */
+    .track {
+        grid-template-columns: 34px 1fr;
+        gap: 16px 14px;
+        padding: 24px 10px;
+    }
+
+    .track .player {
+        grid-column: 1 / -1;
+    }
+
+    /* Commission cards: two columns, third card spans the row */
+    .commission-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .commission-card:last-child {
+        grid-column: 1 / -1;
+    }
+
+    .about-content {
+        grid-template-columns: 1fr;
+        gap: 32px;
+    }
+
+    .about-small {
+        max-width: 520px;
+    }
+
+    .contact {
+        min-height: 60vh;
+    }
+
+}
+
+/* ---- Mobile (about 390px) ---- */
+@media (max-width: 600px) {
+
+    :root {
+        --header-height: 64px;
+    }
+
+    .site-header nav {
+        gap: 18px;
+    }
+
+    .site-header nav a {
+        font-size: 12px;
+        letter-spacing: 0.06em;
+    }
+
+    .logo {
+        font-size: 24px;
+    }
+
+    .hero {
+        padding-bottom: 60px;
+    }
+
+    .hero h1 {
+        letter-spacing: -0.02em;
+    }
+
+    .hero-description {
+        font-size: 16px;
+        margin-top: 28px;
+    }
+
+    .button {
+        margin-top: 36px;
+    }
+
+    .staff {
+        height: 150px;
+    }
+
+    .section {
+        padding: 80px var(--page-padding);
+    }
+
+    .track-meta h4 {
+        font-size: 20px;
+    }
+
+    /* Commission cards: one per row */
     .commission-grid {
         grid-template-columns: 1fr;
+        margin-top: 28px;
+    }
+
+    .commission-card:last-child {
+        grid-column: auto;
+    }
+
+    .commission-card {
+        padding: 22px;
+    }
+
+    /* Bigger touch targets and an always-visible handle on phones */
+    .player-button {
+        width: 48px;
+        height: 48px;
+    }
+
+    .player-seek::-webkit-slider-thumb {
+        transform: scale(1);
+    }
+
+    .player-seek::-moz-range-thumb {
+        transform: scale(1);
+    }
+
+    .player-time {
+        min-width: 80px;
+        font-size: 11px;
+    }
+
+    .contact {
+        min-height: 55vh;
+    }
+
+    .contact-link {
+        margin-top: 40px;
+    }
+
+    .site-footer {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 18px;
     }
 
 }
 
 
-@media (max-width: 700px) {
+/* =========================
+   16. REDUCED MOTION
+   Respects people who turn off animations in their device settings.
+========================= */
 
-    header {
-        padding: 0 6vw;
+@media (prefers-reduced-motion: reduce) {
+
+    html {
+        scroll-behavior: auto;
     }
 
-    nav {
-        gap: 15px;
+    .hero-fade {
+        opacity: 1;
+        animation: none;
     }
 
-    nav a {
-        font-size: 9px;
+    .js .reveal {
+        opacity: 1;
+        transform: none;
+        transition: none;
     }
 
-    .hero {
-        padding-left: 7vw;
-
-        padding-right: 7vw;
-    }
-
-    .hero h1 {
-        letter-spacing: -3px;
-    }
-
-    .section {
-        padding: 100px 7vw;
-    }
-
-    .track {
-        grid-template-columns: 1fr;
-
-        gap: 18px;
-
-        padding: 24px 0;
-    }
-
-    .about-content {
-        grid-template-columns: 1fr;
-
-        gap: 35px;
-    }
-
-    .contact h2 {
-        letter-spacing: -3px;
-    }
-
-    footer {
-        flex-direction: column;
-
-        align-items: flex-start;
-
-        gap: 20px;
+    * {
+        transition-duration: 0.01ms !important;
     }
 
 }
