@@ -1,1056 +1,243 @@
 /* =========================================================
    REI — Composer & Producer
-   style.css
+   script.js
 
    Contents:
-   1. Design tokens (colors, fonts)
-   2. Reset & base
-   3. Accessibility helpers
-   4. Header
-   5. Hero
-   6. Buttons
-   7. Sections
-   8. Tracks
-   9. Custom audio player
-   10. Commissioned work
-   11. About
-   12. Contact
-   13. Footer
-   14. Scroll reveal animation
-   15. Responsive (1024px, 768px, 480px)
-   16. Reduced motion
+   1. Mark the page as "JavaScript is running"
+   2. Custom audio players
+   3. Scroll reveal animation
+   4. Placeholder footer links
+   5. Footer year
 ========================================================= */
 
 
 /* =========================
-   1. DESIGN TOKENS
-   Change colors and fonts here and the whole site updates.
+   1. JAVASCRIPT ENABLED
+   Adds a "js" class to <html>. The CSS uses it so that things
+   like the reveal animation only happen when this file works.
 ========================= */
 
-:root {
-    --bg: #07080c;              /* page background: deep night */
-    --surface: #0d0f16;         /* cards */
-    --line: #1a1c26;            /* thin borders */
-    --line-strong: #2a2d3b;     /* borders on hover */
+document.documentElement.classList.add("js");
 
-    --text: #e9e7f0;            /* main text */
-    --muted: #9391a1;           /* secondary text */
-    --faint: #7a7986;           /* small labels (still readable) */
 
-    --violet: #8f86ff;          /* atmosphere glow */
-    --gold: #e6c07b;            /* small accent, like a lantern */
+/* =========================
+   2. CUSTOM AUDIO PLAYERS
+   Every <div class="player"> in index.html holds a normal <audio>
+   element. This code hides the browser's default controls and
+   builds a nicer play/pause button, progress bar, and timer.
+========================= */
 
-    /* Serif for headlines, clean sans for everything else.
-       These are fonts already on most devices, so nothing extra to download. */
-    --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
-    --font-body: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Hiragino Sans", "Yu Gothic", "Noto Sans JP", Arial, sans-serif;
+// Keeps a list of every audio element so only one plays at a time
+const allAudioElements = [];
 
-    --page-padding: 8vw;
-    --header-height: 72px;
+// Turns seconds (like 75) into a time string (like "1:15")
+function formatTime(totalSeconds) {
+    if (!isFinite(totalSeconds) || totalSeconds < 0) {
+        return "0:00";
+    }
+
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = Math.floor(totalSeconds % 60);
+
+    return minutes + ":" + String(seconds).padStart(2, "0");
+}
+
+// Builds one custom player
+function setupPlayer(player) {
+    const audio = player.querySelector("audio");
+    const source = player.querySelector("source");
+    const title = player.dataset.title || "track";
+
+    // Stop here if the HTML is missing an audio element
+    if (!audio) {
+        return;
+    }
+
+    // Hide the browser's default controls (we are replacing them)
+    audio.removeAttribute("controls");
+    allAudioElements.push(audio);
+
+    // The card this player sits inside (used for the "playing" highlight)
+    const card = player.closest(".track, .commission-card");
+
+    // Build the player's HTML
+    const ui = document.createElement("div");
+    ui.className = "player-ui";
+    ui.innerHTML =
+        '<button class="player-button" type="button" aria-label="Play ' + title + '">' +
+            '<svg class="icon-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12-7.5a1 1 0 0 0 0-1.72l-12-7.5A1 1 0 0 0 7 4.5z"/></svg>' +
+            '<svg class="icon-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="5" height="16" rx="1"/><rect x="14" y="4" width="5" height="16" rx="1"/></svg>' +
+        '</button>' +
+        '<input class="player-seek" type="range" min="0" max="1000" step="1" value="0" aria-label="Seek in ' + title + '">' +
+        '<span class="player-time">' +
+            '<span class="time-current">0:00</span> / <span class="time-duration">--:--</span>' +
+        '</span>';
+    player.appendChild(ui);
+
+    // Find the pieces we just created
+    const button = ui.querySelector(".player-button");
+    const seek = ui.querySelector(".player-seek");
+    const currentTime = ui.querySelector(".time-current");
+    const duration = ui.querySelector(".time-duration");
+
+    // ---- Play / pause button ----
+    button.addEventListener("click", function () {
+        if (audio.paused) {
+            // play() can fail (for example if the file is missing), so we catch errors
+            audio.play().catch(function () {
+                duration.textContent = "Unavailable";
+            });
+        } else {
+            audio.pause();
+        }
+    });
+
+    // ---- When this track starts, pause every other track ----
+    audio.addEventListener("play", function () {
+        allAudioElements.forEach(function (otherAudio) {
+            if (otherAudio !== audio && !otherAudio.paused) {
+                otherAudio.pause();
+            }
+        });
+
+        document.body.classList.add("is-music-playing");
+        player.classList.add("is-playing");
+        if (card) {
+            card.classList.add("is-playing");
+        }
+        button.setAttribute("aria-label", "Pause " + title);
+    });
+
+    // ---- When it pauses or ends, go back to the "paused" look ----
+    function showPausedState() {
+        // Stop the big hero disc only when nothing is playing anymore
+        const somethingPlaying = allAudioElements.some(function (a) { return !a.paused; });
+        if (!somethingPlaying) {
+            document.body.classList.remove("is-music-playing");
+        }
+
+        player.classList.remove("is-playing");
+        if (card) {
+            card.classList.remove("is-playing");
+        }
+        button.setAttribute("aria-label", "Play " + title);
+    }
+
+    audio.addEventListener("pause", showPausedState);
+    audio.addEventListener("ended", function () {
+        audio.currentTime = 0;
+        showPausedState();
+        updateProgress();
+    });
+
+    // ---- Progress bar and current time ----
+    function updateProgress() {
+        const total = audio.duration;
+        const fraction = isFinite(total) && total > 0 ? audio.currentTime / total : 0;
+
+        seek.value = fraction * 1000;
+        seek.style.setProperty("--progress", (fraction * 100) + "%");
+        currentTime.textContent = formatTime(audio.currentTime);
+        seek.setAttribute(
+            "aria-valuetext",
+            formatTime(audio.currentTime) + " of " + formatTime(total)
+        );
+    }
+
+    audio.addEventListener("timeupdate", updateProgress);
+
+    // ---- Total length (shown once the browser knows it) ----
+    function showDuration() {
+        if (isFinite(audio.duration)) {
+            duration.textContent = formatTime(audio.duration);
+            updateProgress();
+        }
+    }
+
+    audio.addEventListener("loadedmetadata", showDuration);
+    audio.addEventListener("durationchange", showDuration);
+
+    // If the metadata loaded before this code ran, show it right away
+    if (audio.readyState >= 1) {
+        showDuration();
+    }
+
+    // ---- Dragging the progress bar to skip around ----
+    seek.addEventListener("input", function () {
+        if (isFinite(audio.duration)) {
+            audio.currentTime = (seek.value / 1000) * audio.duration;
+            updateProgress();
+        }
+    });
+
+    // ---- If the audio file cannot be loaded, say so ----
+    // (errors happen on the <source> tag and do not bubble up to <audio>)
+    if (source) {
+        source.addEventListener("error", function () {
+            duration.textContent = "Unavailable";
+            button.disabled = true;
+            seek.disabled = true;
+        });
+    }
+}
+
+// Set up every player on the page
+document.querySelectorAll(".player").forEach(setupPlayer);
+
+
+/* =========================
+   3. SCROLL REVEAL ANIMATION
+   Elements with class "reveal" fade in once when scrolled into view.
+========================= */
+
+const revealElements = document.querySelectorAll(".reveal");
+
+if ("IntersectionObserver" in window) {
+
+    const revealObserver = new IntersectionObserver(function (entries, observer) {
+        entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+                entry.target.classList.add("is-visible");
+                observer.unobserve(entry.target); // only animate once
+            }
+        });
+    }, {
+        threshold: 0.12,
+        rootMargin: "0px 0px -40px 0px"
+    });
+
+    revealElements.forEach(function (element) {
+        revealObserver.observe(element);
+    });
+
+} else {
+    // Very old browsers: just show everything
+    revealElements.forEach(function (element) {
+        element.classList.add("is-visible");
+    });
 }
 
 
 /* =========================
-   2. RESET & BASE
+   4. PLACEHOLDER FOOTER LINKS
+   Links marked class="is-placeholder" have no real URL yet,
+   so clicking them should do nothing (instead of jumping to the top).
 ========================= */
 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-html {
-    scroll-behavior: smooth;
-    scroll-padding-top: var(--header-height);
-}
-
-body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--font-body);
-    line-height: 1.6;
-    -webkit-font-smoothing: antialiased;
-}
-
-a {
-    color: inherit;
-    text-decoration: none;
-}
-
-h1, h2, h3, h4 {
-    font-weight: 400;
-}
+document.querySelectorAll("a.is-placeholder").forEach(function (link) {
+    link.addEventListener("click", function (event) {
+        event.preventDefault();
+    });
+});
 
 
 /* =========================
-   3. ACCESSIBILITY HELPERS
+   5. FOOTER YEAR
+   Keeps the © year up to date automatically.
 ========================= */
 
-/* Visible outline when using the keyboard */
-:focus-visible {
-    outline: 2px solid var(--gold);
-    outline-offset: 3px;
-    border-radius: 2px;
-}
+const yearElement = document.getElementById("year");
 
-/* "Skip to content" link, only visible when focused */
-.skip-link {
-    position: fixed;
-    top: -60px;
-    left: 16px;
-    z-index: 200;
-    padding: 10px 16px;
-    background: var(--text);
-    color: var(--bg);
-    font-size: 14px;
-    border-radius: 4px;
-    transition: top 0.2s ease;
-}
-
-.skip-link:focus {
-    top: 12px;
-}
-
-
-/* =========================
-   4. HEADER
-========================= */
-
-.site-header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: var(--header-height);
-    z-index: 100;
-
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 var(--page-padding);
-
-    background: rgba(7, 8, 12, 0.72);
-    -webkit-backdrop-filter: blur(16px);
-    backdrop-filter: blur(16px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.logo {
-    font-family: var(--font-display);
-    font-size: 26px;
-    letter-spacing: 0.04em;
-    line-height: 1;
-}
-
-.logo-dot {
-    color: var(--gold);
-}
-
-.site-header nav {
-    display: flex;
-    gap: 32px;
-}
-
-.site-header nav a {
-    color: var(--muted);
-    font-size: 13px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    transition: color 0.2s ease;
-}
-
-.site-header nav a:hover {
-    color: var(--text);
-}
-
-
-/* =========================
-   5. HERO
-========================= */
-
-.hero {
-    position: relative;
-    min-height: 100vh;
-    min-height: 100svh;
-
-    display: flex;
-    align-items: center;
-    padding: calc(var(--header-height) + 60px) var(--page-padding) 80px;
-    overflow: hidden;
-}
-
-/* Atmospheric glows behind the headline */
-.hero::before,
-.hero::after {
-    content: "";
-    position: absolute;
-    border-radius: 50%;
-    pointer-events: none;
-}
-
-.hero::before {
-    width: 720px;
-    height: 720px;
-    top: -12%;
-    right: -220px;
-    background: radial-gradient(circle, rgba(143, 134, 255, 0.2), transparent 68%);
-}
-
-.hero::after {
-    width: 520px;
-    height: 520px;
-    bottom: -18%;
-    left: -180px;
-    background: radial-gradient(circle, rgba(230, 192, 123, 0.07), transparent 70%);
-}
-
-/* The staff lines: this is the one memorable detail on the page */
-.staff {
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    height: 220px;
-
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    pointer-events: none;
-
-    /* fades the lines out toward the left and right edges */
-    -webkit-mask-image: linear-gradient(90deg, transparent, #000 25%, #000 60%, transparent);
-    mask-image: linear-gradient(90deg, transparent, #000 25%, #000 60%, transparent);
-}
-
-.staff span {
-    display: block;
-    height: 1px;
-    background: rgba(255, 255, 255, 0.07);
-}
-
-.hero-inner {
-    position: relative;
-    z-index: 1;
-    max-width: 1000px;
-}
-
-.eyebrow {
-    color: var(--faint);
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-    margin-bottom: 28px;
-}
-
-.hero h1 {
-    font-family: var(--font-display);
-    font-size: clamp(46px, 8.4vw, 118px);
-    line-height: 0.98;
-    letter-spacing: -0.025em;
-    font-weight: 400;
-}
-
-.hero-description {
-    margin-top: 36px;
-    max-width: 440px;
-    color: var(--muted);
-    font-size: 18px;
-    line-height: 1.55;
-}
-
-/* Page-load fade-in, one gentle sequence for the hero only */
-.hero-fade {
-    opacity: 0;
-    animation: fade-up 0.9s ease forwards;
-}
-
-.hero-fade-1 { animation-delay: 0.1s; }
-.hero-fade-2 { animation-delay: 0.25s; }
-.hero-fade-3 { animation-delay: 0.45s; }
-.hero-fade-4 { animation-delay: 0.6s; }
-
-@keyframes fade-up {
-    from {
-        opacity: 0;
-        transform: translateY(14px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-
-/* =========================
-   6. BUTTONS
-========================= */
-
-.button {
-    display: inline-flex;
-    align-items: center;
-    gap: 12px;
-    margin-top: 44px;
-    padding: 15px 26px;
-
-    border: 1px solid var(--line-strong);
-    border-radius: 999px;
-
-    font-size: 13px;
-    font-weight: 600;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-
-    transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
-}
-
-.button-arrow {
-    display: inline-block;
-    transition: transform 0.25s ease;
-}
-
-.button:hover {
-    background: var(--text);
-    color: var(--bg);
-    border-color: var(--text);
-}
-
-.button:hover .button-arrow {
-    transform: translateY(3px);
-}
-
-.button:active {
-    transform: scale(0.98);
-}
-
-
-/* =========================
-   7. SECTIONS
-========================= */
-
-.section {
-    padding: 130px var(--page-padding);
-}
-
-.section-heading {
-    margin-bottom: 72px;
-}
-
-.section-heading h2,
-.contact h2 {
-    font-family: var(--font-display);
-    font-size: clamp(40px, 6vw, 72px);
-    line-height: 1;
-    letter-spacing: -0.02em;
-}
-
-.work-category {
-    margin-bottom: 110px;
-}
-
-.work-category:last-child {
-    margin-bottom: 0;
-}
-
-.category-heading {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 20px;
-    padding-bottom: 20px;
-    border-bottom: 1px solid var(--line-strong);
-}
-
-.category-heading h3 {
-    font-family: var(--font-display);
-    font-size: clamp(24px, 3vw, 30px);
-    letter-spacing: -0.01em;
-}
-
-.category-count {
-    color: var(--faint);
-    font-size: 12px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    white-space: nowrap;
-}
-
-
-/* =========================
-   8. TRACKS
-========================= */
-
-.tracks {
-    display: flex;
-    flex-direction: column;
-}
-
-.track {
-    display: grid;
-    grid-template-columns: 40px minmax(180px, 1fr) minmax(280px, 1.3fr);
-    align-items: center;
-    gap: 28px;
-
-    padding: 28px 14px;
-    border-bottom: 1px solid var(--line);
-
-    transition: background 0.25s ease;
-}
-
-.track:hover,
-.track.is-playing {
-    background: rgba(143, 134, 255, 0.05);
-}
-
-.track-number {
-    color: var(--faint);
-    font-size: 13px;
-    font-variant-numeric: tabular-nums;
-    letter-spacing: 0.08em;
-    transition: color 0.25s ease;
-}
-
-.track:hover .track-number,
-.track.is-playing .track-number {
-    color: var(--gold);
-}
-
-.track-meta h4 {
-    font-family: var(--font-display);
-    font-size: 22px;
-    letter-spacing: -0.01em;
-}
-
-.track-meta p {
-    margin-top: 2px;
-    color: var(--faint);
-    font-size: 13px;
-    letter-spacing: 0.04em;
-}
-
-
-/* =========================
-   9. CUSTOM AUDIO PLAYER
-   script.js builds this player. If JavaScript is off,
-   the normal browser audio controls are shown instead.
-========================= */
-
-.player {
-    width: 100%;
-}
-
-.player audio {
-    width: 100%;
-    height: 40px;
-}
-
-.player-ui {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-}
-
-/* Play / pause button */
-.player-button {
-    flex-shrink: 0;
-    width: 46px;
-    height: 46px;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    background: transparent;
-    color: var(--text);
-    border: 1px solid var(--line-strong);
-    border-radius: 50%;
-    cursor: pointer;
-
-    transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
-}
-
-.player-button svg {
-    width: 16px;
-    height: 16px;
-    fill: currentColor;
-}
-
-/* Show the play icon normally, the pause icon while playing */
-.player-button .icon-pause {
-    display: none;
-}
-
-.player.is-playing .player-button .icon-play {
-    display: none;
-}
-
-.player.is-playing .player-button .icon-pause {
-    display: block;
-}
-
-.player-button:hover,
-.player.is-playing .player-button {
-    background: var(--text);
-    color: var(--bg);
-    border-color: var(--text);
-}
-
-.player-button:active {
-    transform: scale(0.94);
-}
-
-/* Progress bar (a range input, so keyboard and touch work for free) */
-.player-seek {
-    --progress: 0%;
-
-    flex: 1;
-    min-width: 0;
-    height: 24px;
-    margin: 0;
-    background: transparent;
-    cursor: pointer;
-
-    -webkit-appearance: none;
-    appearance: none;
-}
-
-/* Chrome, Safari, Edge: the track */
-.player-seek::-webkit-slider-runnable-track {
-    height: 3px;
-    border-radius: 3px;
-    background: linear-gradient(
-        90deg,
-        var(--gold) var(--progress),
-        var(--line-strong) var(--progress)
-    );
-}
-
-/* Chrome, Safari, Edge: the handle */
-.player-seek::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 12px;
-    height: 12px;
-    margin-top: -4.5px;
-    border-radius: 50%;
-    border: none;
-    background: var(--text);
-    transform: scale(0);
-    transition: transform 0.15s ease;
-}
-
-/* Firefox: the track, progress, and handle */
-.player-seek::-moz-range-track {
-    height: 3px;
-    border-radius: 3px;
-    background: var(--line-strong);
-}
-
-.player-seek::-moz-range-progress {
-    height: 3px;
-    border-radius: 3px;
-    background: var(--gold);
-}
-
-.player-seek::-moz-range-thumb {
-    width: 12px;
-    height: 12px;
-    border: none;
-    border-radius: 50%;
-    background: var(--text);
-    transform: scale(0);
-    transition: transform 0.15s ease;
-}
-
-/* The handle appears on hover, focus, and while playing.
-   It is always visible on touch screens (see the media query below). */
-.player-seek:hover::-webkit-slider-thumb,
-.player-seek:focus-visible::-webkit-slider-thumb,
-.player.is-playing .player-seek::-webkit-slider-thumb {
-    transform: scale(1);
-}
-
-.player-seek:hover::-moz-range-thumb,
-.player-seek:focus-visible::-moz-range-thumb,
-.player.is-playing .player-seek::-moz-range-thumb {
-    transform: scale(1);
-}
-
-.player-time {
-    flex-shrink: 0;
-    min-width: 92px;
-    color: var(--muted);
-    font-size: 12px;
-    font-variant-numeric: tabular-nums;
-    letter-spacing: 0.04em;
-    text-align: right;
-}
-
-
-/* =========================
-   10. COMMISSIONED WORK (client credits)
-========================= */
-
-.commission-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
-    margin-top: 40px;
-}
-
-.commission-card {
-    display: flex;
-    flex-direction: column;
-    padding: 28px;
-
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: 10px;
-
-    transition: border-color 0.25s ease, background 0.25s ease;
-}
-
-.commission-card:hover,
-.commission-card:focus-within {
-    border-color: var(--line-strong);
-}
-
-.commission-header {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    margin-bottom: 30px;
-}
-
-.creator-icon {
-    flex-shrink: 0;
-    width: 52px;
-    height: 52px;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    border-radius: 50%;
-    background: radial-gradient(circle at 30% 25%, #2a2740, #14151d 70%);
-    border: 1px solid var(--line-strong);
-
-    color: var(--text);
-    font-family: var(--font-display);
-    font-size: 17px;
-    letter-spacing: 0.04em;
-}
-
-.commission-header h4 {
-    font-family: var(--font-display);
-    font-size: 20px;
-    line-height: 1.2;
-}
-
-.commission-header a {
-    display: inline-block;
-    margin-top: 2px;
-    color: var(--muted);
-    font-size: 13px;
-    letter-spacing: 0.04em;
-    transition: color 0.2s ease;
-}
-
-.commission-header a:hover {
-    color: var(--gold);
-}
-
-.commission-track {
-    margin-top: auto;
-    padding-top: 22px;
-    border-top: 1px solid var(--line);
-}
-
-.commission-track-title {
-    display: flex;
-    align-items: baseline;
-    gap: 10px;
-    margin-bottom: 14px;
-    font-size: 15px;
-}
-
-.commission-track-title span {
-    color: var(--faint);
-    font-size: 11px;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-}
-
-/* Cards are narrower, so the player time sits a little tighter */
-.commission-track .player-ui {
-    gap: 12px;
-}
-
-.commission-track .player-time {
-    min-width: 84px;
-    font-size: 11px;
-}
-
-
-/* =========================
-   11. ABOUT
-========================= */
-
-.about {
-    border-top: 1px solid var(--line);
-}
-
-.about-content {
-    display: grid;
-    grid-template-columns: 1.4fr 0.7fr;
-    gap: 90px;
-    align-items: start;
-    max-width: 1100px;
-}
-
-.about-large {
-    font-family: var(--font-display);
-    font-size: clamp(26px, 3.3vw, 42px);
-    line-height: 1.22;
-    letter-spacing: -0.015em;
-}
-
-.about-small {
-    color: var(--muted);
-    font-size: 16px;
-    line-height: 1.75;
-    max-width: 380px;
-}
-
-
-/* =========================
-   12. CONTACT
-========================= */
-
-.contact {
-    position: relative;
-    min-height: 70vh;
-    display: flex;
-    align-items: center;
-    overflow: hidden;
-    border-top: 1px solid var(--line);
-}
-
-/* soft glow behind the call to action */
-.contact::before {
-    content: "";
-    position: absolute;
-    width: 640px;
-    height: 640px;
-    right: -200px;
-    bottom: -300px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(143, 134, 255, 0.14), transparent 68%);
-    pointer-events: none;
-}
-
-.contact > div {
-    position: relative;
-}
-
-.contact h2 {
-    font-size: clamp(46px, 8vw, 104px);
-    line-height: 0.98;
-    letter-spacing: -0.03em;
-}
-
-.contact-link {
-    display: inline-block;
-    margin-top: 52px;
-    padding-bottom: 8px;
-
-    border-bottom: 1px solid var(--gold);
-
-    color: var(--gold);
-    font-size: 15px;
-    font-weight: 600;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-
-    transition: color 0.2s ease, border-color 0.2s ease, letter-spacing 0.3s ease;
-}
-
-.contact-link:hover {
-    color: var(--text);
-    border-color: var(--text);
-    letter-spacing: 0.2em;
-}
-
-
-/* =========================
-   13. FOOTER
-========================= */
-
-.site-footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 20px;
-    padding: 32px var(--page-padding);
-
-    border-top: 1px solid var(--line);
-    color: var(--faint);
-    font-size: 13px;
-}
-
-.footer-links {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px 28px;
-}
-
-.footer-links a {
-    transition: color 0.2s ease;
-}
-
-.footer-links a:hover {
-    color: var(--text);
-}
-
-/* Placeholder links (no real URL yet) */
-.footer-links a.is-placeholder {
-    cursor: default;
-    opacity: 0.7;
-}
-
-.footer-links a.is-placeholder:hover {
-    color: var(--faint);
-}
-
-.soon-tag {
-    margin-left: 6px;
-    padding: 2px 8px;
-    border: 1px dashed var(--line-strong);
-    border-radius: 999px;
-    font-size: 10px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-}
-
-
-/* =========================
-   14. SCROLL REVEAL
-   Only active when JavaScript is running (the .js class is added
-   by script.js), so the page never stays hidden without JavaScript.
-========================= */
-
-.js .reveal {
-    opacity: 0;
-    transform: translateY(18px);
-    transition: opacity 0.8s ease, transform 0.8s ease, background 0.25s ease, border-color 0.25s ease;
-}
-
-.js .reveal.is-visible {
-    opacity: 1;
-    transform: none;
-}
-
-
-/* =========================
-   15. RESPONSIVE
-========================= */
-
-/* ---- Small desktop / tablet landscape (about 1024px) ---- */
-@media (max-width: 1100px) {
-
-    .track {
-        grid-template-columns: 34px minmax(160px, 1fr) minmax(260px, 1.4fr);
-        gap: 20px;
-    }
-
-    .commission-card {
-        padding: 24px;
-    }
-
-    .about-content {
-        gap: 60px;
-    }
-
-}
-
-/* ---- Tablet portrait (about 768px) ---- */
-@media (max-width: 860px) {
-
-    :root {
-        --page-padding: 7vw;
-    }
-
-    .section {
-        padding: 100px var(--page-padding);
-    }
-
-    .section-heading {
-        margin-bottom: 56px;
-    }
-
-    .work-category {
-        margin-bottom: 80px;
-    }
-
-    /* Track: number and title on one row, player underneath */
-    .track {
-        grid-template-columns: 34px 1fr;
-        gap: 16px 14px;
-        padding: 24px 10px;
-    }
-
-    .track .player {
-        grid-column: 1 / -1;
-    }
-
-    /* Commission cards: two columns, third card spans the row */
-    .commission-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .commission-card:last-child {
-        grid-column: 1 / -1;
-    }
-
-    .about-content {
-        grid-template-columns: 1fr;
-        gap: 32px;
-    }
-
-    .about-small {
-        max-width: 520px;
-    }
-
-    .contact {
-        min-height: 60vh;
-    }
-
-}
-
-/* ---- Mobile (about 390px) ---- */
-@media (max-width: 600px) {
-
-    :root {
-        --header-height: 64px;
-    }
-
-    .site-header nav {
-        gap: 18px;
-    }
-
-    .site-header nav a {
-        font-size: 12px;
-        letter-spacing: 0.06em;
-    }
-
-    .logo {
-        font-size: 24px;
-    }
-
-    .hero {
-        padding-bottom: 60px;
-    }
-
-    .hero h1 {
-        letter-spacing: -0.02em;
-    }
-
-    .hero-description {
-        font-size: 16px;
-        margin-top: 28px;
-    }
-
-    .button {
-        margin-top: 36px;
-    }
-
-    .staff {
-        height: 150px;
-    }
-
-    .section {
-        padding: 80px var(--page-padding);
-    }
-
-    .track-meta h4 {
-        font-size: 20px;
-    }
-
-    /* Commission cards: one per row */
-    .commission-grid {
-        grid-template-columns: 1fr;
-        margin-top: 28px;
-    }
-
-    .commission-card:last-child {
-        grid-column: auto;
-    }
-
-    .commission-card {
-        padding: 22px;
-    }
-
-    /* Bigger touch targets and an always-visible handle on phones */
-    .player-button {
-        width: 48px;
-        height: 48px;
-    }
-
-    .player-seek::-webkit-slider-thumb {
-        transform: scale(1);
-    }
-
-    .player-seek::-moz-range-thumb {
-        transform: scale(1);
-    }
-
-    .player-time {
-        min-width: 80px;
-        font-size: 11px;
-    }
-
-    .contact {
-        min-height: 55vh;
-    }
-
-    .contact-link {
-        margin-top: 40px;
-    }
-
-    .site-footer {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 18px;
-    }
-
-}
-
-
-/* =========================
-   16. REDUCED MOTION
-   Respects people who turn off animations in their device settings.
-========================= */
-
-@media (prefers-reduced-motion: reduce) {
-
-    html {
-        scroll-behavior: auto;
-    }
-
-    .hero-fade {
-        opacity: 1;
-        animation: none;
-    }
-
-    .js .reveal {
-        opacity: 1;
-        transform: none;
-        transition: none;
-    }
-
-    * {
-        transition-duration: 0.01ms !important;
-    }
-
+if (yearElement) {
+    yearElement.textContent = new Date().getFullYear();
 }
